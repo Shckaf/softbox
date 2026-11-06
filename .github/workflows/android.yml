@@ -18,6 +18,11 @@ jobs:
           fi
           ls -la
 
+      - name: Pin python-for-android version
+        run: |
+          grep -q "^p4a.branch" buildozer.spec || sed -i '/^\[app\]/a p4a.branch = v2024.01.21' buildozer.spec
+          cat buildozer.spec
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
