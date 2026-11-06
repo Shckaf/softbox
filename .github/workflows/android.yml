@@ -1,0 +1,32 @@
+name: Build APK
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Unzip project.zip (if present)
+        run: |
+          if [ -f project.zip ]; then
+            unzip -o project.zip -d .
+          fi
+          ls -la
+
+      - name: Build APK with Buildozer
+        id: buildozer
+        uses: ArtemSBulgakov/buildozer-action@v1
+        with:
+          command: buildozer android debug
+          buildozer_version: stable
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: softbox-apk
+          path: ${{ steps.buildozer.outputs.filename }}
