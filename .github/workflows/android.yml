@@ -11,10 +11,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Unzip project.zip (if present)
+      - name: Unzip project.zip and locate project
         run: |
           if [ -f project.zip ]; then
-            unzip -o project.zip -d .
+            rm -rf _proj
+            unzip -o project.zip -d _proj
+            echo "=== zip content ==="
+            find _proj -maxdepth 3
+            SPEC=$(find _proj -name buildozer.spec | head -n 1)
+            if [ -z "$SPEC" ]; then
+              echo "ERROR: buildozer.spec not found inside project.zip"
+              exit 1
+            fi
+            cp -r "$(dirname "$SPEC")"/. .
           fi
           ls -la
 
