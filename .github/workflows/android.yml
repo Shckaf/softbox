@@ -11,19 +11,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Unzip project.zip and locate project
+      - name: Locate project files
         run: |
-          if [ -f project.zip ]; then
+          echo "=== repo files ==="
+          find . -path ./.git -prune -o -type f -print | head -n 50
+          SPEC=$(find . -name buildozer.spec -not -path "./.git/*" | head -n 1)
+          if [ -z "$SPEC" ]; then
+            ZIP=$(find . -maxdepth 3 -iname "*.zip" -not -path "./.git/*" | head -n 1)
+            if [ -z "$ZIP" ]; then
+              echo "ERROR: no buildozer.spec and no .zip in the repository"
+              exit 1
+            fi
+            echo "Using archive: $ZIP"
             rm -rf _proj
-            unzip -o project.zip -d _proj
+            unzip -o "$ZIP" -d _proj
             echo "=== zip content ==="
             find _proj -maxdepth 3
             SPEC=$(find _proj -name buildozer.spec | head -n 1)
             if [ -z "$SPEC" ]; then
-              echo "ERROR: buildozer.spec not found inside project.zip"
+              echo "ERROR: buildozer.spec not found inside the archive"
               exit 1
             fi
-            cp -r "$(dirname "$SPEC")"/. .
+          fi
+          DIR=$(dirname "$SPEC")
+          if [ "$DIR" != "." ]; then
+            cp -r "$DIR"/. .
           fi
           ls -la
 
